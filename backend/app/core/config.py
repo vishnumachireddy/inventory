@@ -1,7 +1,23 @@
 import os
+from pathlib import Path
 from typing import List, Union
 from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
+
+# Clean spurious system environment variables (like jdbc: strings from Java tools)
+sys_db_url = os.environ.get("DATABASE_URL", "")
+if sys_db_url.startswith("jdbc:") or (sys_db_url and "@" not in sys_db_url and "sqlite" not in sys_db_url):
+    os.environ.pop("DATABASE_URL", None)
+
+# Load root .env or backend .env
+root_env = Path(__file__).resolve().parent.parent.parent.parent / ".env"
+backend_env = Path(__file__).resolve().parent.parent.parent / ".env"
+if root_env.is_file():
+    load_dotenv(root_env, override=False)
+elif backend_env.is_file():
+    load_dotenv(backend_env, override=False)
+
 
 
 class Settings(BaseSettings):
